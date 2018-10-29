@@ -50,6 +50,7 @@ implements Proj04_Dictionary<K,V> {
 		}
 		
 		AVLTreeUpdateHeight(root);
+		AVLTreeUpdateCount(root);
 		rebalanceAVLTree(root);
 		//rebalance and do counts/heights
 	}
@@ -107,6 +108,8 @@ implements Proj04_Dictionary<K,V> {
 		
 		AVLTreeUpdateHeight(rNode);
 		AVLTreeUpdateHeight(r);
+		AVLTreeUpdateCount(r);
+		AVLTreeUpdateCount(rNode);
 
 		return rNode;
 	}
@@ -123,9 +126,16 @@ implements Proj04_Dictionary<K,V> {
 		
 		AVLTreeUpdateHeight(lNode);
 		AVLTreeUpdateHeight(r);
-		
+		AVLTreeUpdateCount(r);
+		AVLTreeUpdateCount(lNode);
+
 		return lNode;
 	}
+	private void AVLTreeUpdateCount(Proj04_BSTNode<K,V> node) {
+		node.count = (1 + getCount(node.left) + getCount(node.right));
+	}
+	
+
 	/** AVLTreeUpdateHeight
 	 * this function updates the height value of the given node
 	 */
@@ -212,6 +222,7 @@ implements Proj04_Dictionary<K,V> {
 		
 		//update the height of the current node
 		AVLTreeUpdateHeight(root);
+		AVLTreeUpdateCount(root);
 		rebalanceAVLTree(root);
 		return root;
 		//rebalance
@@ -260,7 +271,7 @@ implements Proj04_Dictionary<K,V> {
 		if(valuesOut != null)
 			valuesOut[index] = root.value;
 		if(auxOut != null) {
-			String aux = root.height + " " + root.count;
+			String aux = "height " + root.height + " count " + root.count;
 			auxOut[index] = aux;
 		}
 		index++;
@@ -298,7 +309,7 @@ implements Proj04_Dictionary<K,V> {
 		if(valuesOut != null)
 			valuesOut[index] = root.value;
 		if(auxOut != null) {
-			String aux = root.height + " " + root.count;
+			String aux = "height " + root.height + " count " + root.count;
 			auxOut[index] = aux;
 		}
 		index++;
