@@ -31,6 +31,7 @@ public class Proj04_TestBuildRBFrom234
 		String [] aux  = new String [size];
 
 		tree.inOrder(keys,vals,aux);
+		
 		Proj04_TestDriver.printTraversal("inOrder","234->red_black", keys,vals,aux);
 
 		tree.postOrder(keys,vals,aux);

@@ -5,7 +5,7 @@ import java.io.IOException;
 public class  Proj04_AVL_student<K extends Comparable<K>, V>
 implements Proj04_Dictionary<K,V> {
 	
-	private int count = 0;
+	private int count = 1;
 	private String treeType;
 	private Proj04_BSTNode<K,V> root;
 	/**
@@ -25,58 +25,48 @@ implements Proj04_Dictionary<K,V> {
 	 */
 	@Override
 	public void set(K key, V value) {
-		if(root == null) {
-			root.key = key;
-			root.value = value;
-		}
-		Proj04_BSTNode<K,V> curr = root;
-		while(curr != null) {
-			if(curr.key.compareTo(key)  > 0) {
-				if(curr.left == null) {
-					curr.left = new Proj04_BSTNode<K, V>(key, value);
-				}
-				else {
-					curr = curr.left;
-				}
-			}
-			else if(curr.key.compareTo(key) < 0) {
-				if(curr.right == null) {
-					curr.right = new Proj04_BSTNode<K, V>(key, value);
-				}
-				else {
-					curr = curr.right;
-				}
-			}
-		}
-		
-		AVLTreeUpdateHeight(root);
-		AVLTreeUpdateCount(root);
-		rebalanceAVLTree(root);
-		//rebalance and do counts/heights
+		root = set_helper(root, key, value);
 	}
 	
+	private Proj04_BSTNode<K, V> set_helper(Proj04_BSTNode<K, V> node, K key, V value){
+		if(node == null) {
+			return new Proj04_BSTNode<K, V>(key, value);
+		}
+		if (node.key.compareTo(key) ==  0) {
+			node.value = value;
+		}
+		if(node.key.compareTo(key) < 0) {
+			node.right = set_helper(node.right, key, value);
+		}
+		else if(node.key.compareTo(key) >  0 ) {
+			node.left = set_helper(node.left, key, value);
 
+		}
+		AVLTreeUpdateHeight(node);
+		AVLTreeUpdateCount(node);
+		return rebalanceAVLTree(node, key);
+	}
 
 	
-	private Proj04_BSTNode<K,V> rebalanceAVLTree(Proj04_BSTNode<K,V> node) {
+	private Proj04_BSTNode<K,V> rebalanceAVLTree(Proj04_BSTNode<K,V> node, K key) {
 		int balance = AVLTreeGetBalance(node);
 		//left left
-		if(balance > 1 && node.key.compareTo(node.left.key) < 0) {
+		if( balance < -1 &&  key.compareTo(node.left.key) < 0) {
 			return rotateRight(node);
 		}
 		//right right 
-		else if(balance < -1 && node.key.compareTo(node.right.key) > 0){
+		else if(balance > 1 && key.compareTo(node.right.key) > 0){
 			return rotateLeft(node);
 
 		}
 		//left right 
-		else if(balance > 1 && node.key.compareTo(node.left.key) > 0){
-			Proj04_BSTNode temp = rotateRight(node);
+		else if(balance < -1 &&  key.compareTo(node.left.key) > 0){
+			Proj04_BSTNode<K, V> temp = rotateRight(node);
 			return rotateLeft(temp);
 		}
-		//left right 
-		else if(balance < -1 && node.key.compareTo(node.right.key) < 0){
-			Proj04_BSTNode temp = rotateLeft(node);
+		//right left  
+		else if(balance > 1 && key.compareTo(node.right.key) < 0){
+			Proj04_BSTNode<K, V>  temp = rotateLeft(node);
 			return rotateRight(temp);
 		}
 		return node;
@@ -94,7 +84,8 @@ implements Proj04_Dictionary<K,V> {
 			leftHeight = node.left.height;
 		if(node.right != null)
 			rightHeight = node.right.height;
-		return leftHeight - rightHeight;
+
+		return rightHeight - leftHeight;
 	}
 	/** rotateRight
 	 * 
@@ -103,13 +94,13 @@ implements Proj04_Dictionary<K,V> {
 		Proj04_BSTNode<K,V> rNode = r.left;
 		Proj04_BSTNode<K,V> rSubTree = rNode.right;
 		
-		rNode.right = r;
 		r.left = rSubTree;
+		rNode.right = r;
 		
-		AVLTreeUpdateHeight(rNode);
 		AVLTreeUpdateHeight(r);
 		AVLTreeUpdateCount(r);
 		AVLTreeUpdateCount(rNode);
+		AVLTreeUpdateHeight(rNode);
 
 		return rNode;
 	}
@@ -121,12 +112,12 @@ implements Proj04_Dictionary<K,V> {
 		Proj04_BSTNode<K,V> lNode = r.right;
 		Proj04_BSTNode<K,V> lSubTree = lNode.left;
 		
-		lNode.left = r;
 		r.right = lSubTree;
+		lNode.left = r;
 		
-		AVLTreeUpdateHeight(lNode);
 		AVLTreeUpdateHeight(r);
 		AVLTreeUpdateCount(r);
+		AVLTreeUpdateHeight(lNode);
 		AVLTreeUpdateCount(lNode);
 
 		return lNode;
@@ -186,46 +177,72 @@ implements Proj04_Dictionary<K,V> {
 		root = remove_helper(root, key);
 	}
 	
-	private Proj04_BSTNode<K, V> remove_helper(Proj04_BSTNode<K, V> root, K key) {
+	private Proj04_BSTNode<K, V> remove_helper(Proj04_BSTNode<K, V> node, K key) { 
 		//normal delete recursion 
-		if(root == null)
-			return root;
-		if(root.key.compareTo(key) < 0) {
-			root.left = remove_helper(root.left, key);
+		if(node == null)
+			return null;
+		if(node.key.compareTo(key) > 0) {
+			node.left = remove_helper(node.left, key);
 		}
-		else if (root.key.compareTo(key) > 0) {
-			root.right = remove_helper(root.right, key);
+		if (node.key.compareTo(key) < 0) {
+			node.right = remove_helper(node.right, key);
 		}
 		//if the key equals 
-		else if(root.key.compareTo(key) == 0){
+		else if(node.key.compareTo(key) == 0){
 			//case 1: node has one child or no children 
-			if(root.left == null || root.right == null) {
+			if(node.left == null || node.right == null) {
 				//selects the node that is not null if there is one 
-				Proj04_BSTNode temp = null;
-				if(temp == root.left)
-					temp = root.right;
-				if(temp == root.right)
-					temp = root.left;
+				Proj04_BSTNode<K, V>  temp = null;
+				if(node.left == null)
+					temp = node.right;
+				if(node.right ==  null)
+					temp = node.left;
 				//no children 
 				if(temp == null) {
-					temp = root;
-					root = null;
+					temp = node;
+					node = null;
 				}
 				//one child 
 				else {
-					root = temp;
+					node = temp;
 				}
 			}
+			//case 2: two children 
+			else {
+				Proj04_BSTNode<K, V> predecessor = minValue(node.left);
+				K tempKey = node.key;
+				V tempVal = node.value;
+				node.key = predecessor.key;
+				node.value = predecessor.value;
+				predecessor.key = tempKey;
+				predecessor.value = tempVal;
+				node.left = remove_helper(node.left, tempKey);
+			}
+
 		}
-		if(root == null)
-			return null;
 		
 		//update the height of the current node
-		AVLTreeUpdateHeight(root);
-		AVLTreeUpdateCount(root);
-		rebalanceAVLTree(root);
-		return root;
+		if(node != null) {
+			AVLTreeUpdateHeight(node);
+			AVLTreeUpdateCount(node);
+			return rebalanceAVLTree(node, key);
+		}
+		return node;
 		//rebalance
+		
+	}
+	/**
+	 * finds the max value value of a 
+	 * tree 
+	 * @param root - the root node 
+	 * @return - return the max value of a tree 
+	 */
+	private Proj04_BSTNode<K,V>  minValue(Proj04_BSTNode<K,V> root) {
+        while (root.right != null) 
+        { 
+        	root = root.right; 
+        } 
+        return root; 
 		
 	}
 	/** int getSize()
@@ -271,7 +288,7 @@ implements Proj04_Dictionary<K,V> {
 		if(valuesOut != null)
 			valuesOut[index] = root.value;
 		if(auxOut != null) {
-			String aux = "height " + root.height + " count " + root.count;
+			String aux = "h=" + root.height;
 			auxOut[index] = aux;
 		}
 		index++;
@@ -309,7 +326,7 @@ implements Proj04_Dictionary<K,V> {
 		if(valuesOut != null)
 			valuesOut[index] = root.value;
 		if(auxOut != null) {
-			String aux = "height " + root.height + " count " + root.count;
+			String aux = "h=" + root.height;
 			auxOut[index] = aux;
 		}
 		index++;
@@ -328,7 +345,7 @@ implements Proj04_Dictionary<K,V> {
 	public void genDebugDot()
 	{
 		
-		File file = new File(treeType + count++ + ".dot");
+		File file = new File(treeType + "_" + count++ + ".dot");
 		try {
 			FileWriter writer = new FileWriter(file);
 			writer.write("digraph{\n");
